@@ -39,13 +39,10 @@ async function run() {
     app.post('/proposals', async (req, res) => {
       try {
         const proposal = req.body;
-
         const result = await proposalCollections.insertOne(proposal);
-
         res.status(201).json(result);
       } catch (error) {
         console.log(error);
-
         res.status(500).json({
           success: false,
           error: error.message,
