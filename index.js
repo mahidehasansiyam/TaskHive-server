@@ -40,6 +40,16 @@ async function run() {
     app.post('/payments', async (req, res) => {
       try {
         const paymentData = req.body;
+        // Check existing payment
+        const existingPayment = await paymentCollections.findOne({
+          tranjectionId: paymentData.tranjectionId,
+        });
+        if (existingPayment) {
+          return res.status(409).json({
+            success: false,
+            message: 'Payment already exists',
+          });
+        }
         paymentData.createdAt = new Date();
         const result = await paymentCollections.insertOne(paymentData);
         res.status(201).json({
