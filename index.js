@@ -33,6 +33,27 @@ async function run() {
     const usersCollections = db.collection('user');
     const tasksCollections = db.collection('tasks');
     const proposalCollections = db.collection('proposal');
+    const paymentCollections = db.collection('payment');
+
+    // Payment related API
+    //  POST payment 
+    app.post('/payments', async (req, res) => {
+      try {
+        const paymentData = req.body;
+        paymentData.createdAt = new Date();
+        const result = await paymentCollections.insertOne(paymentData);
+        res.status(201).json({
+          success: true,
+          message: 'Payment saved successfully',
+          insertedId: result.insertedId,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
+    });
 
     // Proposal related  API
     // POST Proposal
@@ -285,6 +306,43 @@ async function run() {
 
 
     // User related API
+
+    // UPDATE user info
+    app.patch('/user/update', async (req, res) => {
+      try {
+        const { email, bio, hourlyRate, image, skills } = req.body;
+        const filter = {
+          email: email,
+        };
+        const updateDoc = {
+          $set: {
+            bio,
+            hourlyRate,
+            image,
+            skills,
+          },
+        };
+        const result = await usersCollections.updateOne(filter, updateDoc);
+        if (result.matchedCount === 0) {
+          return res.status(404).json({
+            message: 'User not found',
+          });
+        }
+        res.status(200).json({
+          success: true,
+          message: 'Profile updated successfully',
+          result,
+        });
+      } catch (error) {
+        res.status(500).json({
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
     // GET all users who are freelaancer
     app.get('/freelancers', async (req, res) => {
       try {
@@ -330,7 +388,21 @@ async function run() {
 
     //  Tasks relater AIP
 
-    // GET status = "open" Tasks
+    // Get all task
+    app.get('/tasks', async (req, res) => {
+      try {
+        const result = await tasksCollections.find().toArray();
+        res.status(200).json(result || []);
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({
+          error: error.message,
+        });
+      }
+    });
+
+
+    // GET task status = "open" 
     app.get('/open/tasks', async (req, res) => {
       try {
         const result = await tasksCollections
