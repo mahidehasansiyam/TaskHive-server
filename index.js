@@ -419,7 +419,48 @@ async function run() {
 
     // User related API
 
-    // UPDATE user info
+    // UPDATE user isBlocked info
+
+    app.patch('/users/:userId', async (req, res) => {
+      try {
+        const userId = req.params.userId;
+        const { isBlocked } = req.body;
+
+        const query = {
+          _id: new ObjectId(userId),
+        };
+
+        const updateDoc = {
+          $set: {
+            isBlocked,
+          },
+        };
+
+        const result = await usersCollections.updateOne(query, updateDoc);
+
+        res.status(200).json({
+          success: true,
+          message:
+            isBlocked === 'yes'
+              ? 'User blocked successfully'
+              : 'User unblocked successfully',
+          result,
+        });
+      } catch (error) {
+        console.error('Error updating user status:', error);
+
+        res.status(500).json({
+          success: false,
+          message: 'Failed to update user status',
+          error: error.message,
+        });
+      }
+    });
+
+
+
+
+    // UPDATE user profile info
     app.patch('/user/update', async (req, res) => {
       try {
         const { email, bio, hourlyRate, image, skills } = req.body;
