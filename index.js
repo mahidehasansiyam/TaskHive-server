@@ -36,6 +36,55 @@ async function run() {
     const paymentCollections = db.collection('payment');
 
     // Payment related API
+
+    // GET all payment
+    app.get('/payments', async (req, res) => {
+      try {
+        const payments = await paymentCollections
+          .find()
+          .sort({ createdAt: -1 }) // latest first
+          .toArray();
+        res.status(200).json({
+          success: true,
+          count: payments.length,
+          data: payments,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
+    });
+
+    // GET payment by client email or freelancer email
+   app.get('/payments/:email', async (req, res) => {
+     try {
+       const email = req.params.email;
+
+       const payments = await paymentCollections
+         .find({
+           $or: [{ clientEmail: email }, { freelancerEmail: email }],
+         })
+         .sort({ createdAt: -1 })
+         .toArray();
+
+       res.status(200).json({
+         success: true,
+         count: payments.length,
+         data: payments,
+       });
+     } catch (error) {
+       res.status(500).json({
+         success: false,
+         error: error.message,
+       });
+     }
+   });
+
+
+
+
     //  POST payment 
     app.post('/payments', async (req, res) => {
       try {
@@ -311,6 +360,59 @@ async function run() {
 
 
 
+    // GET admin statistics
+    app.get('/admin-stats', async (req, res) => {
+      try {
+        // Task statistics
+        const totalTask = await tasksCollections.countDocuments();
+        const totalOpenTask = await tasksCollections.countDocuments({
+          status: 'open',
+        });
+        const totalCompleteTask = await tasksCollections.countDocuments({
+          status: 'completed',
+        });
+        // Payment statistics (Revenue)
+        const payments = await paymentCollections.find().toArray();
+        const totalRevenue = payments.reduce(
+          (sum, payment) => sum + Number(payment.finalBudget || 0),
+          0,
+        );
+        // User statistics
+        const totalFreelancers = await usersCollections.countDocuments({
+          role: 'freelancer',
+        });
+        const totalClients = await usersCollections.countDocuments({
+          role: 'client',
+        });
+        res.status(200).json({
+          success: true,
+          data: {
+            tasks: {
+              totalTask,
+              totalOpenTask,
+              totalCompleteTask,
+            },
+
+            payments: {
+              totalRevenue,
+            },
+
+            users: {
+              totalClients,
+              totalFreelancers,
+            },
+          },
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
+    });
+
+
+
 
 
 
@@ -350,6 +452,18 @@ async function run() {
       }
     });
 
+
+    // Get all users
+     app.get('/users', async (req, res) => {
+       try {
+         const result = await usersCollections.find().toArray();
+         res.status(200).json(result);
+       } catch (error) {
+         res.status(500).json({
+           error: error.message,
+         });
+       }
+     });
 
 
 
