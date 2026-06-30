@@ -82,9 +82,6 @@ async function run() {
      }
    });
 
-
-
-
     //  POST payment 
     app.post('/payments', async (req, res) => {
       try {
