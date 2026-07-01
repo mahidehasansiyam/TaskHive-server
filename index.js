@@ -577,7 +577,7 @@ async function run() {
     });
 
     // GET Tasks by client id
-    app.get('/tasks', async (req, res) => {
+    app.get('/tasks/clientid', async (req, res) => {
       try {
         const query = {};
         if (req.query.clientId) {
